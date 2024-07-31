@@ -7,7 +7,7 @@
     <title>Document</title>
 </head>
 <body>
-    <h1>profile page</h1>
+    <h1>profile pagee</h1>
     <form action="{{ route('api.profile.update') }}" method="post" enctype="multipart/form-data" >
         @csrf
         {{-- @method('PUT/') --}}
