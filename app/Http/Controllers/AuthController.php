@@ -26,21 +26,28 @@ class AuthController extends Controller
             $request->validate([
                 'name' => 'required|max:250|string',
                 'email' => 'required|email|unique:users',
+                'gender' => 'required|string|in:male,female',
                 'password' => 'required|string|min:8',
             ]);
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
+                'gender' => $request->gender,
                 'password' => Hash::make($request->password)
             ]);
             Auth::login($user);
+            $photo = $user->getFirstMedia('user_photos');
+            $photoUrl = $photo ? $photo->getUrl() : '';
             $token = $user->createToken('auth_token')->plainTextToken;
             return response()->json([
                 'status' => 'success',
                 'massge' => 'User registered successfully',
                 'data' => [
-                    'name ' => $user->name,
-                    'email' => $user->email,
+                    // 'name ' => $user->name,
+                    // 'email' => $user->email,
+                    'user' => $user,
+                    'phone' => $user->phone,
+                    'photo' => $photoUrl,
                     'token' => $token,
                 ],
             ]);

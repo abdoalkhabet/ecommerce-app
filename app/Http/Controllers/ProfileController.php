@@ -28,12 +28,12 @@ class ProfileController extends Controller
             // Validate the incoming request
             $validatedData = $request->validate([
                 'phone' => 'required|string|max:15',
-                'gender' => 'required|string|in:male,female',
+                // 'gender' => 'required|string|in:male,female',
                 'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
             ]);
 
             // Update the user with the validated data
-            $user->update($request->only(['phone', 'gender']));
+            $user->update($request->only(['phone', 'name']));
 
             // Handle the photo upload if it exists
             if ($request->hasFile('photo')) {
