@@ -8,8 +8,9 @@
 </head>
 <body>
     <h2>Login</h2>
-    <form action="{{ route('api.login') }}" method="POST">
+    <form action="{{ route('api_login') }}" method="POST">
         @csrf
+        @method('POST')
         <label for="login_email">Email:</label>
         <input type="email" id="login_email" name="email" required>
 

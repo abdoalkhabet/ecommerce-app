@@ -33,6 +33,7 @@ class AuthController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($request->password)
             ]);
+            Auth::login($user);
             $token = $user->createToken('auth_token')->plainTextToken;
             return response()->json([
                 'status' => 'success',
@@ -72,8 +73,8 @@ class AuthController extends Controller
                     'email' => ['The provided credentials are incorrect.'],
                 ]);
             };
-
-            $token = $user->createToken('auth_token')->plainTextToken;
+            Auth::login($user);
+            $token = $user->createToken('auth_token', ['server:update'])->plainTextToken;
 
             return response()->json([
                 'status' => 'success',
