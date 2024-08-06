@@ -10,5 +10,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Category extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
+
     protected $fillable = ['name'];
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }

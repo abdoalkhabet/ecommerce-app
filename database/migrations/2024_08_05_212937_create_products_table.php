@@ -21,8 +21,8 @@ return new class extends Migration
             $table->boolean('inStock')->default(true);
             $table->decimal('discount', 5, 2)->nullable();
             $table->foreignId('category_id')
-                ->references('id') // العمود في جدول categories
-                ->on('categories') // اسم الجدول
+                ->references('id')
+                ->on('categories')
                 ->onDelete('cascade');
             $table->timestamps();
         });
