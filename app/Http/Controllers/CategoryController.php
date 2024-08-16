@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+
 use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
@@ -36,7 +38,7 @@ class CategoryController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $category->addMediaFromeRequest('image')->toMediaCollection('category_images');
+            $category->addMediaFromRequest('image')->toMediaCollection('category_images');
         }
         return response()->json($category, 201);
     }
@@ -49,7 +51,7 @@ class CategoryController extends Controller
         ]);
         if ($request->hasFile('image')) {
             $category->clearMediaCollection('category_images');
-            $category->addMediaFromeRequst('imade')->toMediaCollection('category_images');
+            $category->addMediaFromRequest('imade')->toMediaCollection('category_images');
         }
         return response()->json(['massage' => 'category updated successfully']);
     }
@@ -88,5 +90,12 @@ class CategoryController extends Controller
                 'prev_page_url' => $products->previousPageUrl(),
             ],
         ]);
+    }
+    public function destroy($id)
+    {
+        $category = Category::findOrFail($id);
+        $category->ClearMediaCollection('category_images');
+        $category->delete();
+        return response()->json(['massage' => 'category deleted successfully']);
     }
 }
