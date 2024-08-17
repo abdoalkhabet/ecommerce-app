@@ -38,13 +38,10 @@ Route::prefix('products')->group(function () {
     Route::put('/update/{id}', [ProductController::class, 'update']);
     Route::delete('/deleteProduct/{id}', [ProductController::class, 'destroy']);
 
-    // عرض المنتجات حسب الفئة مع التدوير
-    Route::get('/category/{categoryId}', [ProductController::class, 'getByCategory']);
+    // Route::get('/category/{categoryId}', [ProductController::class, 'getByCategory']);
 });
 Route::get('/products/{productId}/allreviews', [ReviewController::class, 'index']);
 
-// إضافة مراجعة لمنتج معين
 Route::post('/products/{productId}/reviews', [ReviewController::class, 'store']);
 
-// حذف مراجعة
 // Route::delete('/products/{productId}/reviews/{reviewId}', [ReviewController::class, 'destroy'])->middleware('auth:sanctum');

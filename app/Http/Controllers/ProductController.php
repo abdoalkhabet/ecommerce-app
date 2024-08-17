@@ -122,7 +122,9 @@ class ProductController extends Controller
             'price' => 'required|numeric',
             'oldPrice' => 'nullable|numeric',
             'quantity' => 'required|integer',
-            'category_id' => 'required|exists:categories,id',
+            // 'category_id' => 'required|exists:categories,id',
+            'category_name' => 'required|string|exists:categories,name',
+
             'discount' => 'nullable|numeric',
             'main_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
@@ -131,10 +133,11 @@ class ProductController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
+        $category = Category::where('name', $request->input('category_name'))->firstOrFail();
+
 
         $product = Product::findOrFail($id);
 
-        // تحديث بيانات المنتج
         $product->update($request->only([
             'name',
             'description',
@@ -173,7 +176,7 @@ class ProductController extends Controller
     {
         $products = Product::where('category_id', $categoryId)
             ->with(['category', 'media', 'reviews'])
-            ->paginate(10); // استخدام التدوير لعرض 10 منتجات في الصفحة
+            ->paginate(10);
 
         $products->getCollection()->transform(function ($product) {
             $discountedPrice = $product->discount ? $product->price * (1 - $product->discount / 100) : null;

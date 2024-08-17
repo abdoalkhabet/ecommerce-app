@@ -45,13 +45,28 @@ class CategoryController extends Controller
 
     public function update(Request $request, $id)
     {
-        $category = Category::findOrFail($id);
-        $category->update([
-            'name' => $request->name,
+
+        // dd($request->all());
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
+
+        if ($validator->fails()) {
+            // dd($validator->errors());
+            return response()->json($validator->errors(), 400);
+        }
+        $category = Category::findOrFail($id);
+        if ($request->has('name')) {
+            $category->name = $request->input('name', $category->name);
+        }
+        // $category->update([
+        //     'name' => $request->name,
+        // ]);
+        $category->save();
         if ($request->hasFile('image')) {
             $category->clearMediaCollection('category_images');
-            $category->addMediaFromRequest('imade')->toMediaCollection('category_images');
+            $category->addMediaFromRequest('image')->toMediaCollection('category_images');
         }
         return response()->json(['massage' => 'category updated successfully']);
     }
@@ -59,9 +74,9 @@ class CategoryController extends Controller
     {
         $category = Category::findOrFail($categoryId);
 
-        $products = $category->products()->paginate(10);
+        $paginatedProducts = $category->products()->paginate(10);
 
-        $products = $products->map(function ($product) {
+        $products = $paginatedProducts->getCollection()->map(function ($product) {
             return [
                 'id' => $product->id,
                 'name' => $product->name,
@@ -78,16 +93,16 @@ class CategoryController extends Controller
                 'updated_at' => $product->updated_at,
             ];
         });
-
+        $paginatedProducts->setCollection($products);
         return response()->json([
-            'products' => $products,
+            'products' => $paginatedProducts->items(),
             'pagination' => [
-                'current_page' => $products->currentPage(),
-                'total_pages' => $products->lastPage(),
-                'per_page' => $products->perPage(),
-                'total' => $products->total(),
-                'next_page_url' => $products->nextPageUrl(),
-                'prev_page_url' => $products->previousPageUrl(),
+                'current_page' => $paginatedProducts->currentPage(),
+                'total_pages' => $paginatedProducts->lastPage(),
+                'per_page' => $paginatedProducts->perPage(),
+                'total' => $paginatedProducts->total(),
+                'next_page_url' => $paginatedProducts->nextPageUrl(),
+                'prev_page_url' => $paginatedProducts->previousPageUrl(),
             ],
         ]);
     }
