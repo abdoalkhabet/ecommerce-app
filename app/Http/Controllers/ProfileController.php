@@ -60,7 +60,7 @@ class ProfileController extends Controller
             return response()->json(
                 [
                     'message' => 'Profile updated successfully',
-                    'user' => $user,
+                    'user' => $user->makeHidden(['media']),
                     'photo' => $photoUrl,
 
                 ],

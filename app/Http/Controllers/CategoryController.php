@@ -16,7 +16,7 @@ class CategoryController extends Controller
             return [
                 'id' => $Category->id,
                 'name' => $Category->name,
-                'image_url' => $Category->getFirstMedia('category_images') ?? '',
+                'image_url' => $Category->getFirstMediaUrl('category_images') ?? '',
             ];
         });
         return response()->json($categories);

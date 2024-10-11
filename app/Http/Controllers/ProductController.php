@@ -27,7 +27,7 @@ class ProductController extends Controller
                 'category_name' => $product->category->name ?? '',
                 'averageRating' => $product->averageRating() ?? null,
                 'reviews_count' => $product->reviews()->count() ?? null,
-                'main_image_url' => $product->getFirstMediaUrl('main_images'),
+                'main_image_url' => $product->getFirstMediaUrl('main_image'),
                 'images_urls' => $product->getMedia('images')->map->getUrl(),
                 'created_at' => $product->created_at,
                 'updated_at' => $product->updated_at,
@@ -37,7 +37,7 @@ class ProductController extends Controller
     }
     public function show($id)
     {
-        $product = Product::with(['category', 'reviews'])->findOrFail($id);
+        $product = Product::with(['category', 'reviews', 'media'])->findOrFail($id);
 
         $discountedPrice = $product->discount ? $product->price * (1 - $product->discount / 100) : null;
 
@@ -53,7 +53,7 @@ class ProductController extends Controller
             'category_name' => $product->category->name ?? '',
             'averageRating' => $product->averageRating() ?? null,
             'reviews_count' => $product->reviews()->count() ?? null,
-            'main_image_url' => $product->getFirstMediaUrl('main_images'),
+            'main_image_url' => $product->getFirstMediaUrl('main_image'),
             'images_urls' => $product->getMedia('images')->map->getUrl(),
             'created_at' => $product->created_at,
             'updated_at' => $product->updated_at,
@@ -72,7 +72,7 @@ class ProductController extends Controller
             'category_name' => 'required|string|exists:categories,name',
             'discount' => 'nullable|numeric',
             'main_image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'images.*' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
@@ -85,7 +85,7 @@ class ProductController extends Controller
             'price' => $request->input('price'),
             'oldPrice' => $request->input('oldPrice'),
             'quantity' => $request->input('quantity'),
-            'category_id' => $category->id, // استخدام معرف الفئة
+            'category_id' => $category->id,
             'discount' => $request->input('discount'),
         ]);
         if ($request->hasFile('main_image')) {
@@ -108,8 +108,10 @@ class ProductController extends Controller
             'category_name' => $product->category->name ?? '',
             'averageRating' => $product->averageRating() ?? null,
             'reviews_count' => $product->reviews()->count() ?? null,
-            'main_image_url' => $product->getFirstMediaUrl('main_images'),
-            'images_urls' => $product->getMedia('images')->map->getUrl(),
+            'main_image_url' => $product->getFirstMediaUrl('main_image'),
+            'images_urls' => $product->getMedia('images')->map(function ($media) {
+                return $media->getUrl();
+            }),
             'created_at' => $product->created_at,
             'updated_at' => $product->updated_at,
         ], 201);
@@ -124,10 +126,9 @@ class ProductController extends Controller
             'quantity' => 'required|integer',
             // 'category_id' => 'required|exists:categories,id',
             'category_name' => 'required|string|exists:categories,name',
-
             'discount' => 'nullable|numeric',
             'main_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'images.*' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -150,8 +151,8 @@ class ProductController extends Controller
 
         if ($request->hasFile('main_image')) {
 
-            $product->clearMediaCollection('main_images');
-            $product->addMediaFromRequest('main_image')->toMediaCollection('main_images');
+            $product->clearMediaCollection('main_image');
+            $product->addMediaFromRequest('main_image')->toMediaCollection('main_image');
         }
 
         if ($request->hasFile('images')) {
@@ -161,7 +162,23 @@ class ProductController extends Controller
             }
         }
 
-        return response()->json($product, 200);
+        return response()->json([
+            'id' => $product->id,
+            'name' => $product->name,
+            'description' => $product->description,
+            'price' => $product->price,
+            'discountedPrice' => $discountedPrice ?? '',
+            'oldPrice' => $product->oldPrice ?? '',
+            'quantity' => $product->quantity,
+            'inStock' => $product->isInStock(),
+            'category_name' => $product->category->name ?? '',
+            'averageRating' => $product->averageRating() ?? null,
+            'reviews_count' => $product->reviews()->count() ?? null,
+            'main_image_url' => $product->getFirstMediaUrl('main_image'),
+            'images_urls' => $product->getMedia('images')->map->getUrl() ?? '',
+            'created_at' => $product->created_at,
+            'updated_at' => $product->updated_at,
+        ], 201);
     }
 
     public function destroy($id)
