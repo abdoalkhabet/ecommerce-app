@@ -4,10 +4,11 @@ namespace App\Models;
 
 use App\Models\Review;
 use App\Models\Category;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Helpers\MediaHelper;
 use Spatie\MediaLibrary\HasMedia;
+use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 
 class Product extends Model implements HasMedia
@@ -24,6 +25,21 @@ class Product extends Model implements HasMedia
         'category_id',
         'discount'
     ];
+    public function mainImage()
+    {
+        return MediaHelper::mediaRelationship($this, 'product_main_image');
+    }
+
+    public function otherImages()
+    {
+        $media = MediaHelper::mediaRelationship($this, 'product_other_images');
+
+        if ($media) {
+            return $media;
+        } else {
+            return null;
+        }
+    }
     public function category()
     {
         return $this->belongsTo(Category::class);

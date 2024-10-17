@@ -9,9 +9,10 @@ use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
+
     public function index()
     {
-        $products = Product::with(['category', 'media', 'reviews'])->get();
+        $products = Product::with(['category', 'mainImage', 'otherImages', 'reviews'])->get();
         $products = $products->map(function ($product) {
             $discountedPrice = $product->discount ? $product->price * (1 - $product->discount / 100) : null;
 
@@ -27,10 +28,12 @@ class ProductController extends Controller
                 'category_name' => $product->category->name ?? '',
                 'averageRating' => $product->averageRating() ?? null,
                 'reviews_count' => $product->reviews()->count() ?? null,
-                'main_image_url' => $product->getFirstMediaUrl('main_image'),
-                'images_urls' => $product->getMedia('images')->map->getUrl(),
+                // 'main_image_url' => $product->getFirstMediaUrl('product_main_image'),
+                // 'images_urls' => $product->getMedia('product_other_images')->map->getUrl(),
                 'created_at' => $product->created_at,
                 'updated_at' => $product->updated_at,
+                'main_image' => $product->mainImage->first()->original_url,
+                'other_images' => $product->otherImages->map(fn($i) => $i->original_url)
             ];
         });
         return response()->json($products);
@@ -53,8 +56,8 @@ class ProductController extends Controller
             'category_name' => $product->category->name ?? '',
             'averageRating' => $product->averageRating() ?? null,
             'reviews_count' => $product->reviews()->count() ?? null,
-            'main_image_url' => $product->getFirstMediaUrl('main_image'),
-            'images_urls' => $product->getMedia('images')->map->getUrl(),
+            'main_image_url' => $product->getFirstMediaUrl('product_main_image'),
+            'images_urls' => $product->getMedia('product_other_images')->map->getUrl(),
             'created_at' => $product->created_at,
             'updated_at' => $product->updated_at,
         ]);
@@ -69,7 +72,7 @@ class ProductController extends Controller
             'oldPrice' => 'nullable|numeric',
             'quantity' => 'required|integer',
             // 'category_id' => 'required|exists:categories,id',
-            'category_name' => 'required|string|exists:categories,name',
+            'category_name' => 'required|string|exists:categories,name', // important line
             'discount' => 'nullable|numeric',
             'main_image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'images.*' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
@@ -89,11 +92,11 @@ class ProductController extends Controller
             'discount' => $request->input('discount'),
         ]);
         if ($request->hasFile('main_image')) {
-            $product->addMediaFromRequest('main_image')->toMediaCollection('main_image');
+            $product->addMediaFromRequest('main_image')->toMediaCollection('product_main_image');
         }
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $product->addMedia($image)->toMediaCollection('images');
+                $product->addMedia($image)->toMediaCollection('product_other_images');
             }
         }
         return response()->json([
@@ -108,8 +111,8 @@ class ProductController extends Controller
             'category_name' => $product->category->name ?? '',
             'averageRating' => $product->averageRating() ?? null,
             'reviews_count' => $product->reviews()->count() ?? null,
-            'main_image_url' => $product->getFirstMediaUrl('main_image'),
-            'images_urls' => $product->getMedia('images')->map(function ($media) {
+            'main_image_url' => $product->getFirstMediaUrl('product_main_image'),
+            'images_urls' => $product->getMedia('product_other_images')->map(function ($media) {
                 return $media->getUrl();
             }),
             'created_at' => $product->created_at,
@@ -128,7 +131,7 @@ class ProductController extends Controller
             'category_name' => 'required|string|exists:categories,name',
             'discount' => 'nullable|numeric',
             'main_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'images.*' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -151,14 +154,14 @@ class ProductController extends Controller
 
         if ($request->hasFile('main_image')) {
 
-            $product->clearMediaCollection('main_image');
-            $product->addMediaFromRequest('main_image')->toMediaCollection('main_image');
+            $product->clearMediaCollection('product_main_image');
+            $product->addMediaFromRequest('main_image')->toMediaCollection('product_main_image');
         }
 
         if ($request->hasFile('images')) {
-            $product->clearMediaCollection('images');
+            $product->clearMediaCollection('product_other_images');
             foreach ($request->file('images') as $image) {
-                $product->addMedia($image)->toMediaCollection('images');
+                $product->addMedia($image)->toMediaCollection('product_other_images');
             }
         }
 
@@ -174,18 +177,18 @@ class ProductController extends Controller
             'category_name' => $product->category->name ?? '',
             'averageRating' => $product->averageRating() ?? null,
             'reviews_count' => $product->reviews()->count() ?? null,
-            'main_image_url' => $product->getFirstMediaUrl('main_image'),
-            'images_urls' => $product->getMedia('images')->map->getUrl() ?? '',
+            'main_image_url' => $product->getFirstMediaUrl('product_main_image'),
+            'images_urls' => $product->getMedia('product_other_images')->map->getUrl(),
             'created_at' => $product->created_at,
             'updated_at' => $product->updated_at,
-        ], 201);
+        ], 200);
     }
 
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
-        $product->ClearMediaCollection('main_image');
-        $product->ClearMediaCollection('images');
+        $product->ClearMediaCollection('product_main_image');
+        $product->ClearMediaCollection('product_other_images');
         $product->delete();
         return response()->json(['massage' => 'Product deleted successfully']);
     }
@@ -210,8 +213,8 @@ class ProductController extends Controller
                 'category_name' => $product->category->name ?? '',
                 'averageRating' => $product->averageRating() ?? null,
                 'reviews_count' => $product->reviews()->count() ?? null,
-                'main_image_url' => $product->getFirstMediaUrl('main_images'),
-                'images_urls' => $product->getMedia('images')->map->getUrl(),
+                'main_image_url' => $product->getFirstMediaUrl('product_main_image'),
+                'images_urls' => $product->getMedia('product_other_images')->map->getUrl(),
                 'created_at' => $product->created_at,
                 'updated_at' => $product->updated_at,
             ];
