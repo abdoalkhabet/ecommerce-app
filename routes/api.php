@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -45,3 +46,8 @@ Route::get('/products/{productId}/allreviews', [ReviewController::class, 'index'
 Route::post('/products/{productId}/reviews', [ReviewController::class, 'store']);
 
 // Route::delete('/products/{productId}/reviews/{reviewId}', [ReviewController::class, 'destroy'])->middleware('auth:sanctum');
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/cart/items', [CartController::class, 'addItem']);
+    Route::get('/cart', [CartController::class, 'showCart']);
+    Route::delete('/cart/items/{cart_item_id}', [CartController::class, 'removeItem']);
+});
