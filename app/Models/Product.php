@@ -57,4 +57,9 @@ class Product extends Model implements HasMedia
     {
         return $this->quantity > 0;
     }
+
+    public function wishlist()
+    {
+        return $this->hasMany(Wishlist::class);
+    }
 }

@@ -9,6 +9,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\WishlistController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -50,4 +51,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/cart/items', [CartController::class, 'addItem']);
     Route::get('/cart', [CartController::class, 'showCart']);
     Route::delete('/cart/items/{cart_item_id}', [CartController::class, 'removeItem']);
+});
+
+Route::middleware('auth:sanctum')->prefix('wishlist')->group(function () {
+    Route::get('/', [WishlistController::class,  'index']);
+    Route::post('/add', [WishlistController::class, 'store']);
+    Route::delete('/remove/{id}', [WishlistController::class, 'destroy']);
+    Route::get('/suggestions', [WishlistController::class, 'getSuggestions']);
+    Route::get('/analytics', [WishlistController::class, 'favoriteAnalytics']);
 });

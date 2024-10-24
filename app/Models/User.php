@@ -31,6 +31,11 @@ class User extends Authenticatable implements HasMedia
     {
         return $this->hasMany(Cart::class);
     }
+
+    public function wishlist()
+    {
+        return $this->hasMany(Wishlist::class);
+    }
     /**
      * The attributes that should be hidden for serialization.
      *
